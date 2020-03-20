@@ -1,7 +1,11 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{BBE42EDD-71E0-40A0-8D4E-39539556F57D}"
+Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}"
+EndProject
+Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{CC1B89F6-19ED-4DED-972D-875BB90087EF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{FCD66012-8218-4AFD-AA61-642986AC7D83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,9 +21,17 @@ Global
 		{A9C41465-7B05-4A3E-A2E5-400BF0831ADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9C41465-7B05-4A3E-A2E5-400BF0831ADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9C41465-7B05-4A3E-A2E5-400BF0831ADF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BBE42EDD-71E0-40A0-8D4E-39539556F57D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBE42EDD-71E0-40A0-8D4E-39539556F57D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBE42EDD-71E0-40A0-8D4E-39539556F57D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BBE42EDD-71E0-40A0-8D4E-39539556F57D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC1B89F6-19ED-4DED-972D-875BB90087EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC1B89F6-19ED-4DED-972D-875BB90087EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC1B89F6-19ED-4DED-972D-875BB90087EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC1B89F6-19ED-4DED-972D-875BB90087EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
