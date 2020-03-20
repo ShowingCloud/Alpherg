@@ -1,11 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{AA699C83-4D81-44D9-81DF-91EFA5FFD20D}"
-EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{CC1B89F6-19ED-4DED-972D-875BB90087EF}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{FCD66012-8218-4AFD-AA61-642986AC7D83}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{CB593397-0FC2-4074-B0AF-01344FB5D4FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,5 +29,9 @@ Global
 		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCD66012-8218-4AFD-AA61-642986AC7D83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB593397-0FC2-4074-B0AF-01344FB5D4FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB593397-0FC2-4074-B0AF-01344FB5D4FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB593397-0FC2-4074-B0AF-01344FB5D4FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB593397-0FC2-4074-B0AF-01344FB5D4FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
