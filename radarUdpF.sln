@@ -1,8 +1,6 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{9553DECC-4239-48A0-8A72-238220668EE4}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "radarUdpF", "radarUdpF\radarUdpF.fsproj", "{EE4EDA31-124D-43DD-A4D5-EE856033A391}"
 EndProject
 Global
