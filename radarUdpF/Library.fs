@@ -62,7 +62,7 @@ module radarUdp =
                         | _ -> Console.WriteLine("Dropped one misconstructed packet.")
                 return! loop()
             }
-            loop() |> Async.RunSynchronously
+            loop() |> Async.StartAsTask
 
         member radar.Parse msg =
             {
@@ -128,6 +128,5 @@ module radarUdp =
                     BitConverter.ToUInt16(x, 10)
                 |])
 
-    let Receive (port: int, callback: radarUdpProtocol -> unit) =
-        radarUdp(port).Receive callback |> ignore
-        0
+    let Receive (port: int, callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
+        radarUdp(port).Receive callback
