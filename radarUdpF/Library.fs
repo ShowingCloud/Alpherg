@@ -74,31 +74,30 @@ module radarUdp =
                 sourceAddr      = msg |> Seq.take 3 |> radar.toAddr SourceAddr
                 sectorId        = msg |> Seq.item 3
                 trackNum        = msg |> Seq.item 4
-                tracks          = [|
-                    for i in 0 .. 9 do
-                        yield {
-                            trackId     = msg |> Seq.item (5 + i * 22)
-                            timestamp   = msg |> Seq.skip (5 + i * 22) |> Seq.take 2 |> radar.toInt64
-                            distance    = msg |> Seq.item (8 + i * 22) |> radar.toFloat32
-                            orientation = msg |> Seq.item (9 + i * 22) |> radar.toFloat32
-                            pitch       = msg |> Seq.item (10 + i * 22) |> radar.toFloat32
-                            speedRadial = msg |> Seq.item (11 + i * 22) |> radar.toFloat32
-                            strength    = msg |> Seq.item (12 + i * 22)
-                            latitude    = msg |> Seq.item (13 + i * 22) |> radar.toFloat32
-                            longitude   = msg |> Seq.item (14 + i * 22) |> radar.toFloat32
-                            altitude    = msg |> Seq.item (15 + i * 22) |> radar.toFloat32
-                            speedEast   = msg |> Seq.item (16 + i * 22) |> radar.toFloat32
-                            speedWest   = msg |> Seq.item (17 + i * 22) |> radar.toFloat32
-                            speedVert   = msg |> Seq.item (18 + i * 22) |> radar.toFloat32
-                            distanceX   = msg |> Seq.item (19 + i * 22) |> radar.toFloat32
-                            distanceY   = msg |> Seq.item (20 + i * 22) |> radar.toFloat32
-                            distanceZ   = msg |> Seq.item (21 + i * 22) |> radar.toFloat32
-                            relative    = msg |> Seq.item (22 + i * 22)
-                            trackedNum  = msg |> Seq.item (23 + i * 22)
-                            lostNum     = msg |> Seq.item (24 + i * 22)
-                            reserved    = msg |> Seq.skip (24 + i * 22) |> Seq.take 2 |> radar.toInt64
-                        }
-                    |]
+                tracks          = [|0..9|]
+                    |> Array.filter (fun i -> msg |> Seq.item (5 + i * 22) <> uint32 0)
+                    |> Array.map (fun i -> {
+                        trackId     = msg |> Seq.item (5 + i * 22)
+                        timestamp   = msg |> Seq.skip (5 + i * 22) |> Seq.take 2 |> radar.toInt64
+                        distance    = msg |> Seq.item (8 + i * 22) |> radar.toFloat32
+                        orientation = msg |> Seq.item (9 + i * 22) |> radar.toFloat32
+                        pitch       = msg |> Seq.item (10 + i * 22) |> radar.toFloat32
+                        speedRadial = msg |> Seq.item (11 + i * 22) |> radar.toFloat32
+                        strength    = msg |> Seq.item (12 + i * 22)
+                        latitude    = msg |> Seq.item (13 + i * 22) |> radar.toFloat32
+                        longitude   = msg |> Seq.item (14 + i * 22) |> radar.toFloat32
+                        altitude    = msg |> Seq.item (15 + i * 22) |> radar.toFloat32
+                        speedEast   = msg |> Seq.item (16 + i * 22) |> radar.toFloat32
+                        speedWest   = msg |> Seq.item (17 + i * 22) |> radar.toFloat32
+                        speedVert   = msg |> Seq.item (18 + i * 22) |> radar.toFloat32
+                        distanceX   = msg |> Seq.item (19 + i * 22) |> radar.toFloat32
+                        distanceY   = msg |> Seq.item (20 + i * 22) |> radar.toFloat32
+                        distanceZ   = msg |> Seq.item (21 + i * 22) |> radar.toFloat32
+                        relative    = msg |> Seq.item (22 + i * 22)
+                        trackedNum  = msg |> Seq.item (23 + i * 22)
+                        lostNum     = msg |> Seq.item (24 + i * 22)
+                        reserved    = msg |> Seq.skip (24 + i * 22) |> Seq.take 2 |> radar.toInt64
+                    })
             }
 
         member radar.Return msg =
