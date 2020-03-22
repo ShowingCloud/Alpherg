@@ -54,11 +54,16 @@ module radarUdp =
             let rec loop () = async {
                 udp.AsyncReceive(ref ip)
                     |> Async.RunSynchronously
-                    |> Seq.chunkBySize 4
-                    |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
-                    |> radar.Parse
-                    |> radar.Return
-                    |> callback
+                    |> function
+                        | x when Seq.length x = 900
+                            -> (x
+                                |> Seq.chunkBySize 4
+                                |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
+                                |> radar.Parse
+                                |> radar.Return
+                                |> callback
+                                )
+                        | _ -> 0
                     |> ignore
                 return! loop()
             }
@@ -71,7 +76,7 @@ module radarUdp =
                 sectorId        = msg |> Seq.item 3
                 trackNum        = msg |> Seq.item 4
                 tracks          = [|
-                    for i in 0 .. 10 do
+                    for i in 0 .. 9 do
                         yield {
                             trackId     = msg |> Seq.item (5 + i * 22)
                             timestamp   = msg |> Seq.skip (5 + i * 22) |> Seq.take 2 |> radar.toInt64
@@ -98,8 +103,6 @@ module radarUdp =
             }
 
         member radar.Return msg =
-            msg.targetAddr |> printfn "%A"
-            msg.sourceAddr |> printfn "%A"
             msg
 
         member radar.toFloat32 (data: uint32) =
