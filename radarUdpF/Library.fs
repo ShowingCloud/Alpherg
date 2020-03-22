@@ -63,8 +63,7 @@ module radarUdp =
                                 |> radar.Return
                                 |> callback
                                 )
-                        | _ -> 0
-                    |> ignore
+                        | _ -> Console.WriteLine("Dropped one misconstructed packet.")
                 return! loop()
             }
             loop() |> Async.RunSynchronously
@@ -134,7 +133,7 @@ module radarUdp =
                     BitConverter.ToUInt16(x, 10)
                 |])
 
-    let Receive (port: int, callback: radarUdpProtocol -> int) =
+    let Receive (port: int, callback: radarUdpProtocol -> unit) =
         let receiver = radarUdp port
         receiver.Receive callback |> ignore
         0
