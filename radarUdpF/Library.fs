@@ -5,10 +5,6 @@ module radarUdp =
     open System.Net
     open System
 
-    type System.Net.Sockets.UdpClient with
-        member udpclient.AsyncReceive (endPoint: IPEndPoint ref) =
-            Async.FromBeginEnd(udpclient.BeginReceive, fun acb -> udpclient.EndReceive(acb, endPoint))
-
     type radarUdpProtocolTracks =
         {
             trackId     : uint32
@@ -52,7 +48,7 @@ module radarUdp =
 
         member radar.Receive callback =
             let rec loop () = async {
-                udp.AsyncReceive(ref ip)
+                Async.FromBeginEnd (udp.BeginReceive, fun acb -> udp.EndReceive(acb, ref ip))
                     |> Async.RunSynchronously
                     |> function
                         | x when Seq.length x = 900
@@ -133,5 +129,5 @@ module radarUdp =
                 |])
 
     let Receive (port: int, callback: radarUdpProtocol -> unit) =
-        radarUdp(port).Receive(callback) |> ignore
+        radarUdp(port).Receive callback |> ignore
         0
