@@ -133,6 +133,5 @@ module radarUdp =
                 |])
 
     let Receive (port: int, callback: radarUdpProtocol -> unit) =
-        let receiver = radarUdp port
-        receiver.Receive callback |> ignore
+        radarUdp(port).Receive(callback) |> ignore
         0
