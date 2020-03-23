@@ -48,18 +48,18 @@ module radarUdp =
 
         member radar.Receive callback =
             let rec loop () = async {
-                Async.FromBeginEnd (udp.BeginReceive, fun acb -> udp.EndReceive(acb, ref ip))
-                    |> Async.RunSynchronously
-                    |> function
-                        | x when Seq.length x = 900
-                            -> (x
-                                |> Seq.chunkBySize 4
-                                |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
-                                |> radar.Parse
-                                |> radar.Return
-                                |> callback
-                                )
-                        | _ -> Console.WriteLine("Dropped one misconstructed packet.")
+                (fun x ->
+                    udp.EndReceive(x, ref ip)
+                    |> Seq.chunkBySize 4
+                    |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
+                    |> radar.Parse
+                    |> radar.Return
+                    |> callback
+                )
+                |> fun x -> new System.AsyncCallback(x)
+                |> fun x -> udp.BeginReceive(x, null)
+                |> Async.AwaitIAsyncResult
+                |> ignore
                 return! loop()
             }
             loop() |> Async.StartAsTask
