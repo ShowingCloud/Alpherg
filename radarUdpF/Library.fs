@@ -4,6 +4,7 @@ module radarUdp =
     open System.Net.Sockets
     open System.Net
     open System
+    open FSharpPlus
 
     type radarUdpProtocolTracks =
         {
@@ -52,10 +53,10 @@ module radarUdp =
                 <| (fun x ->
                     udp.EndReceive(x, ref ip)
                     |> function
-                        | x when Seq.length x = 900
+                        | x when length x = 900
                             -> (x
                             |> Seq.chunkBySize 4
-                            |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
+                            |> map (fun x -> BitConverter.ToUInt32(x, 0))
                             |> radar.Parse
                             |> radar.Return
                             |> callback
@@ -73,10 +74,10 @@ module radarUdp =
                 <| fun acb -> udp.EndReceive(acb, ref ip)
                 |> Async.RunSynchronously
                 |> function
-                    | x when Seq.length x = 900
+                    | x when length x = 900
                         -> (x
                         |> Seq.chunkBySize 4
-                        |> Seq.map (fun x -> BitConverter.ToUInt32(x, 0))
+                        |> map (fun x -> BitConverter.ToUInt32(x, 0))
                         |> radar.Parse
                         |> radar.Return
                         |> callback
@@ -88,15 +89,15 @@ module radarUdp =
 
         member radar.Parse (msg: seq<uint32>) : radarUdpProtocol =
             {
-                targetAddr      = msg |> Seq.take 3 |> radar.toAddr TargetAddr
-                sourceAddr      = msg |> Seq.take 3 |> radar.toAddr SourceAddr
+                targetAddr      = msg |> take 3 |> radar.toAddr TargetAddr
+                sourceAddr      = msg |> take 3 |> radar.toAddr SourceAddr
                 sectorId        = msg |> Seq.item 3
                 trackNum        = msg |> Seq.item 4
                 tracks          = [|0..9|]
-                    |> Array.filter (fun i -> msg |> Seq.item (5 + i * 22) <> uint32 0)
-                    |> Array.map (fun i -> {
+                    |> filter (fun i -> msg |> Seq.item (5 + i * 22) <> uint32 0)
+                    |> map (fun i -> {
                         trackId     = msg |> Seq.item (5 + i * 22)
-                        timestamp   = msg |> Seq.skip (5 + i * 22) |> Seq.take 2 |> radar.toInt64
+                        timestamp   = msg |> skip (5 + i * 22) |> take 2 |> radar.toInt64
                         distance    = msg |> Seq.item (8 + i * 22) |> radar.toFloat32
                         orientation = msg |> Seq.item (9 + i * 22) |> radar.toFloat32
                         pitch       = msg |> Seq.item (10 + i * 22) |> radar.toFloat32
@@ -114,7 +115,7 @@ module radarUdp =
                         relative    = msg |> Seq.item (22 + i * 22)
                         trackedNum  = msg |> Seq.item (23 + i * 22)
                         lostNum     = msg |> Seq.item (24 + i * 22)
-                        reserved    = msg |> Seq.skip (24 + i * 22) |> Seq.take 2 |> radar.toInt64
+                        reserved    = msg |> skip (24 + i * 22) |> take 2 |> radar.toInt64
                     })
             }
 
@@ -128,15 +129,13 @@ module radarUdp =
 
         member radar.toInt64 (data: seq<uint32>) : uint64 =
             data
-            |> Seq.toArray
-            |> Array.map BitConverter.GetBytes
+            |> map BitConverter.GetBytes
             |> Array.concat
             |> fun x -> BitConverter.ToUInt64(x, 0)
 
         member radar.toAddr (addr: Addr) (data: seq<uint32>) : array<uint16> =
             data
-            |> Seq.toArray
-            |> Array.map BitConverter.GetBytes
+            |> map BitConverter.GetBytes
             |> Array.concat
             |> match addr with
                | TargetAddr -> (fun x -> [|
