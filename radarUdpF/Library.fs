@@ -46,7 +46,7 @@ module radarUdp =
         let udp = new UdpClient(port)
         let ip = new IPEndPoint(IPAddress.Any, port)
 
-        member radar.Receive callback =
+        member radar.Receive (callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
             let rec loopDeconstructed () = async {
                 (fun x -> new System.AsyncCallback(x))
                 <| (fun x ->
@@ -86,7 +86,7 @@ module radarUdp =
             }
             loop() |> Async.StartAsTask
 
-        member radar.Parse msg =
+        member radar.Parse (msg: seq<uint32>) : radarUdpProtocol =
             {
                 targetAddr      = msg |> Seq.take 3 |> radar.toAddr TargetAddr
                 sourceAddr      = msg |> Seq.take 3 |> radar.toAddr SourceAddr
@@ -118,22 +118,22 @@ module radarUdp =
                     })
             }
 
-        member radar.Return msg =
+        member radar.Return (msg: radarUdpProtocol) : radarUdpProtocol =
             msg
 
-        member radar.toFloat32 (data: uint32) =
+        member radar.toFloat32 (data: uint32) : float32 =
             data
             |> BitConverter.GetBytes
             |> fun x -> BitConverter.ToSingle(x, 0)
 
-        member radar.toInt64 (data: seq<uint32>) =
+        member radar.toInt64 (data: seq<uint32>) : uint64 =
             data
             |> Seq.toArray
             |> Array.map BitConverter.GetBytes
             |> Array.concat
             |> fun x -> BitConverter.ToUInt64(x, 0)
 
-        member radar.toAddr addr (data: seq<uint32>) =
+        member radar.toAddr (addr: Addr) (data: seq<uint32>) : array<uint16> =
             data
             |> Seq.toArray
             |> Array.map BitConverter.GetBytes
