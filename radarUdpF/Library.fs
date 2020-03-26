@@ -5,6 +5,7 @@ module radarUdp =
     open System.Net
     open System
     open FSharpPlus
+    open ProjNet.CoordinateSystems
 
     type radarUdpProtocolTracks =
         {
@@ -51,19 +52,19 @@ module radarUdp =
             let rec loopDeconstructed () = async {
                 (fun x -> new System.AsyncCallback(x))
                 <| (fun x ->
-                    udp.EndReceive(x, ref ip)
+                    curry udp.EndReceive x (ref ip)
                     |> function
                         | x when length x = 900
                             -> (x
                             |> Seq.chunkBySize 4
-                            |> map (fun x -> BitConverter.ToUInt32(x, 0))
+                            |>> (curry >> flip) BitConverter.ToUInt32 0
                             |> radar.Parse
                             |> radar.Return
                             |> callback
                             )
-                        | _ -> Console.WriteLine("Dropped one misconstrued packet.")
+                        | _ -> Console.WriteLine "Dropped one misconstrued packet."
                 )
-                |> fun x -> udp.BeginReceive(x, null)
+                |> (curry >> flip) udp.BeginReceive null
                 |> Async.AwaitIAsyncResult
                 |> ignore
                 return! loopDeconstructed()
@@ -71,18 +72,19 @@ module radarUdp =
 
             let rec loop () = async {
                 (fun x -> Async.FromBeginEnd(udp.BeginReceive, x))
-                <| fun acb -> udp.EndReceive(acb, ref ip)
+                <| (curry >> flip) udp.EndReceive (ref ip)
                 |> Async.RunSynchronously
                 |> function
                     | x when length x = 900
                         -> (x
                         |> Seq.chunkBySize 4
-                        |> map (fun x -> BitConverter.ToUInt32(x, 0))
+                        |>> (curry >> flip) BitConverter.ToUInt32 0
                         |> radar.Parse
+                        // |> radar.Transform
                         |> radar.Return
                         |> callback
                         )
-                        | _ -> Console.WriteLine("Dropped one misconstructed packet.")
+                        | _ -> Console.WriteLine "Dropped one misconstructed packet."
                 return! loop()
             }
             loop() |> Async.StartAsTask
@@ -94,8 +96,8 @@ module radarUdp =
                 sectorId        = msg |> Seq.item 3
                 trackNum        = msg |> Seq.item 4
                 tracks          = [|0..9|]
-                    |> filter (fun i -> msg |> Seq.item (5 + i * 22) <> uint32 0)
-                    |> map (fun i -> {
+                    |> ((fun i -> msg |> Seq.item (5 + i * 22) <> uint32 0) |> filter)
+                    |>> (fun i -> {
                         trackId     = msg |> Seq.item (5 + i * 22)
                         timestamp   = msg |> skip (5 + i * 22) |> take 2 |> radar.toInt64
                         distance    = msg |> Seq.item (8 + i * 22) |> radar.toFloat32
@@ -125,29 +127,31 @@ module radarUdp =
         member radar.toFloat32 (data: uint32) : float32 =
             data
             |> BitConverter.GetBytes
-            |> fun x -> BitConverter.ToSingle(x, 0)
+            |> (curry >> flip) BitConverter.ToSingle 0
 
         member radar.toInt64 (data: seq<uint32>) : uint64 =
             data
-            |> map BitConverter.GetBytes
+            |>> BitConverter.GetBytes
             |> Array.concat
-            |> fun x -> BitConverter.ToUInt64(x, 0)
+            |> (curry >> flip) BitConverter.ToUInt64 0
 
         member radar.toAddr (addr: Addr) (data: seq<uint32>) : array<uint16> =
             data
-            |> map BitConverter.GetBytes
+            |>> BitConverter.GetBytes
             |> Array.concat
-            |> match addr with
-               | TargetAddr -> (fun x -> [|
-                    BitConverter.ToUInt16(x, 0)
-                    BitConverter.ToUInt16(x, 2)
-                    BitConverter.ToUInt16(x, 4)
-                |])
-               | SourceAddr -> (fun x -> [|
-                    BitConverter.ToUInt16(x, 6)
-                    BitConverter.ToUInt16(x, 8)
-                    BitConverter.ToUInt16(x, 10)
-                |])
+            |> curry BitConverter.ToUInt16
+            <<| match addr with
+                | TargetAddr -> [|0; 2; 4|]
+                | SourceAddr -> [|6; 8; 10|]
 
-    let Receive (port: int, callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
-        radarUdp(port).Receive callback
+        // member radar.Transform (msg: radarUdpProtocol) : radarUdpProtocol =
+        //    let factory = new Transformations.CoordinateTransformationFactory()
+        //    let trans = factory.CreateFromCoordinateSystems(GeographicCoordinateSystem.WGS84, ProjectedCoordinateSystem.WGS84_UTM)
+        //    let fromPoint = { 120, -3 }
+        //    let toPoint = trans.MathTransform.Transform(fromPoint)
+        //    msg
+
+    let Receive (port: int, callback: radarUdpProtocol -> unit,
+                    longitude: double , latitude: double, height: double,
+                    orientation: double, pitch: double) : Threading.Tasks.Task<unit> =
+            radarUdp(port).Receive callback

@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackOnBuild>true</PackOnBuild>
+    <RepositoryUrl>https://github.com/ShowingCloud/Alpherg</RepositoryUrl>
+    <ReleaseVersion>0.2</ReleaseVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,5 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
+    <PackageReference Include="GeoAPI" Version="1.7.5" />
+    <PackageReference Include="ProjNet" Version="2.0.0" />
   </ItemGroup>
 </Project>
