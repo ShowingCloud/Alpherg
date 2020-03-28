@@ -4,7 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackOnBuild>true</PackOnBuild>
     <RepositoryUrl>https://github.com/ShowingCloud/Alpherg</RepositoryUrl>
-    <ReleaseVersion>0.2</ReleaseVersion>
+    <ReleaseVersion>0.3</ReleaseVersion>
+    <Description>Alpherg is a tiny experimental project decrypting some UDP packets
+
+https://github.com/ShowingCloud/Alpherg</Description>
   </PropertyGroup>
 
   <ItemGroup>
