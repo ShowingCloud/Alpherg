@@ -1,13 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <PackOnBuild>true</PackOnBuild>
     <RepositoryUrl>https://github.com/ShowingCloud/Alpherg</RepositoryUrl>
     <ReleaseVersion>0.3</ReleaseVersion>
     <Description>Alpherg is a tiny experimental project decrypting some UDP packets
 
 https://github.com/ShowingCloud/Alpherg</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Library|AnyCPU' ">
+    <IntermediateOutputPath>obj\Library</IntermediateOutputPath>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Library</OutputPath>
+    <DefineConstants></DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>false</NoStdLib>
+    <OtherFlags></OtherFlags>
+    <PlatformTarget></PlatformTarget>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,5 +42,6 @@ https://github.com/ShowingCloud/Alpherg</Description>
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <PackageReference Include="GeoAPI" Version="1.7.5" />
     <PackageReference Include="ProjNet" Version="2.0.0" />
+    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
   </ItemGroup>
 </Project>
