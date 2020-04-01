@@ -47,5 +47,6 @@ Global
 		$8.Indent = @\t
 		$8.LastFilePostfix = "@:\n  "
 		$8.IncludeDirectoryPaths = True
+		$8.LineAlign = 0
 	EndGlobalSection
 EndGlobal

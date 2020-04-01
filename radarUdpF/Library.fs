@@ -5,43 +5,83 @@ module radarUdp =
     open System.Net
     open System
     open FSharpPlus
-    open GeoAPI
-    open ProjNet
-    open NetTopologySuite
 
     type radarUdpProtocolTracks =
         {
+            /// 航迹编号
+            /// 1 - 999,999
             trackId     : uint32
+            /// 时间戳 (ms)
+            /// Epoch时间
             timestamp   : uint64
+            /// 距离 (m)
+            /// 斜距
             distance    : float32
+            /// 方位角 (度)
+            /// 雷达坐标系
             orientation : float32
+            /// 俯仰角 (度)
+            /// 水平面以上
             pitch       : float32
+            /// 径向速度 (m/s)
+            /// 远离为负，靠近为正
             speedRadial : float32
+            /// 目标强度
+            /// 无量纲
             strength    : uint32
+            /// 经度 (度)
             latitude    : float32
+            /// 纬度 (度)
             longitude   : float32
+            /// 海拔 (m)
             altitude    : float32
+            /// 东向速度 (m/s)
+            /// x 方向的速度，增大为正
             speedEast   : float32
+            /// 北向速度 (m/s)
+            /// y 方向的速度，增大为正
             speedNorth  : float32
+            /// 纵向速度 (m/s)
+            /// z 方向的速度，增大为正
             speedVert   : float32
+            /// x (m)
+            /// x = r * cos(theta) * cos(phi)
             distanceX   : float32
+            /// y (m)
+            /// y = r * cos(theta) * cos(phi)
             distanceY   : float32
+            /// z (m)
+            /// z = r * sin(theta)
             distanceZ   : float32
+            /// 本次是否相关上
+            /// 判断是否市外推点
             relative    : uint32
+            /// 已跟踪次数
             trackedNum  : uint32
+            /// 丢失次数
+            /// 丢失次数为 4 航迹终止
             lostNum     : uint32
+            /// 保留字段
             reserved    : uint64
-            mutable calculatedLongitude : float32 option
+            /// 根据距离、俯仰、方位换算得到的经度
             mutable calculatedLatitude  : float32 option
+            /// 根据距离、俯仰、方位换算得到的纬度
+            mutable calculatedLongitude : float32 option
+            /// 根据距离、俯仰、方位换算得到的海拔
             mutable calculatedHeight    : float32 option
         }
 
     type radarUdpProtocol =
         {
+            /// 目标地址
             targetAddr  : uint16[]
+            /// 源地址
             sourceAddr  : uint16[]
+            /// 所在方位扇区编号
             sectorId    : uint32
+            /// 本包航迹数量
             trackNum    : uint32
+            /// 10 个航迹信息，每条航迹只发送最新的点迹
             tracks      : radarUdpProtocolTracks[]
         }
 
@@ -50,10 +90,19 @@ module radarUdp =
         | SourceAddr
 
     type radarUdp (port: int) =
-        let udp = new UdpClient(port)
         let ip = IPEndPoint(IPAddress.Any, port)
-
+        static let mutable udp = new UdpClient(15281)
+        static let mutable cts = new Threading.CancellationTokenSource()
+      
         member __.Receive (callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
+            cts.Cancel()
+            cts.Dispose()
+            cts <- new Threading.CancellationTokenSource()
+
+            udp.Close()
+            udp.Dispose()
+            udp <- new UdpClient(port)
+
             let rec loopDeconstructed () = async {
                 (fun x ->
                 curry udp.EndReceive x (ref ip)
@@ -65,7 +114,7 @@ module radarUdp =
                     |> __.Parse
                     |> __.Return
                     |> callback
-                | _ -> Console.WriteLine "Dropped one misconstrued packet."
+                | _ -> printfn "Dropped one misconstrued packet."
                 )
                 |> fun x -> AsyncCallback x
                 |> (curry >> flip) udp.BeginReceive null
@@ -87,10 +136,11 @@ module radarUdp =
                     |> __.Transform
                     |> __.Return
                     |> callback
-                | _ -> Console.WriteLine "Dropped one misconstructed packet."
+                | _ -> printfn "Dropped one misconstrued packet."
                 return! loop()
             }
-            loop() |> Async.RunSynchronously
+            loop()
+            |> fun x -> Async.RunSynchronously(x, cancellationToken = cts.Token)
 
         member __.Parse (msg: seq<uint32>) : radarUdpProtocol =
             {
@@ -121,8 +171,8 @@ module radarUdp =
                         trackedNum  = msg |> nth (23 + i * 22)
                         lostNum     = msg |> nth (24 + i * 22)
                         reserved    = msg |> skip (24 + i * 22) |> take 2 |> __.toInt64
-                        calculatedLongitude = None
                         calculatedLatitude  = None
+                        calculatedLongitude = None
                         calculatedHeight    = None
                     })
             }
@@ -151,65 +201,23 @@ module radarUdp =
                 | SourceAddr -> [|6; 8; 10|]
 
         member __.Transform (msg: radarUdpProtocol) : radarUdpProtocol =
-            let precisionModel =
-                Geometries.PrecisionModels.Floating
-                |> Geometries.PrecisionModel
-
-            let factory_wgs84 =
-                CoordinateSystems.GeographicCoordinateSystem.WGS84.AuthorityCode
-                |> Convert.ToInt32
-                |> curry Geometries.GeometryFactory precisionModel
-
-            let factory_target =
-                (51, true)
-                |> CoordinateSystems.ProjectedCoordinateSystem.WGS84_UTM
-                |> fun x -> x.AuthorityCode
-                |> Convert.ToInt32
-                |> curry Geometries.GeometryFactory precisionModel
-
-            let P1 =
-                (121.3837, 31.0579)
-                |> Geometries.Coordinate
-                |> factory_wgs84.CreatePoint
-
-            let P2 =
-                (121.5837, 31.2579)
-                |> Geometries.Coordinate
-                |> factory_wgs84.CreatePoint
-
-            let transformation =
-                (51, true)
-                |> CoordinateSystems.ProjectedCoordinateSystem.WGS84_UTM
-                |> curry (CoordinateSystems.Transformations.CoordinateTransformationFactory().CreateFromCoordinateSystems)
-                    CoordinateSystems.GeographicCoordinateSystem.WGS84
-
-            let Q1 =
-                [|P1.X; P1.Y|]
-                |> transformation.MathTransform.Transform
-                |> fun x -> curry Geometries.Coordinate x.[0] x.[1]
-                |> factory_target.CreatePoint
-
-            let Q2 =
-                [|P2.X; P2.Y|]
-                |> transformation.MathTransform.Transform
-                |> fun x -> curry Geometries.Coordinate x.[0] x.[1]
-                |> factory_target.CreatePoint
+            // printfn "%A" GeoToolkit.GeoToolkit.Transform
 
             msg.tracks
-            |>> fun x -> 
-                x.calculatedLongitude <- Some (float32 Q2.X)
-                x.calculatedLatitude <- Some (float32 (P2 |> P1.Distance))
-                x.calculatedHeight <- Some (float32 (Q2 |> Q1.Distance))
+            //|>> fun x -> 
+            //    x.calculatedLatitude <- Some (float32 (P2 |> P1.Distance))
+            //    x.calculatedLongitude <- Some (float32 Q2.X)
+            //    x.calculatedHeight <- Some (float32 (Q2 |> Q1.Distance))
             |> ignore
 
             msg
 
-    let Receive (port: int, callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
-            radarUdp(port).Receive callback
+    let StartReceive (port: int, callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
+        radarUdp(port).Receive callback
 
     [<EntryPoint>]
-    let main args =
-        Receive(15281, (printfn "%A"))
+    let main (args: string[]) : int =
+        curry StartReceive 15281 (printfn "%A")
         |> Async.AwaitTask
         |> ignore
 
