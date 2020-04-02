@@ -126,7 +126,7 @@ module radarUdp =
             let rec loop () = async {
                 (curry >> flip) udp.EndReceive (ref ip)
                 |> fun x -> Async.FromBeginEnd(udp.BeginReceive, x)
-                |> Async.RunSynchronously
+                |> fun x -> Async.RunSynchronously(x, cancellationToken = cts.Token)
                 |> function
                 | msg when length msg = 900
                     -> msg
@@ -158,8 +158,8 @@ module radarUdp =
                         pitch       = msg |> nth (10 + i * 22) |> __.toFloat32
                         speedRadial = msg |> nth (11 + i * 22) |> __.toFloat32
                         strength    = msg |> nth (12 + i * 22)
-                        latitude    = msg |> nth (13 + i * 22) |> __.toFloat32
-                        longitude   = msg |> nth (14 + i * 22) |> __.toFloat32
+                        latitude    = msg |> nth (13 + i * 22) |> float32 |> Operators.(/) 1000000.0f
+                        longitude   = msg |> nth (14 + i * 22) |> float32 |> Operators.(/) 1000000.0f
                         altitude    = msg |> nth (15 + i * 22) |> __.toFloat32
                         speedEast   = msg |> nth (16 + i * 22) |> __.toFloat32
                         speedNorth  = msg |> nth (17 + i * 22) |> __.toFloat32
@@ -201,7 +201,7 @@ module radarUdp =
                 | SourceAddr -> [|6; 8; 10|]
 
         member __.Transform (msg: radarUdpProtocol) : radarUdpProtocol =
-            // printfn "%A" GeoToolkit.GeoToolkit.Transform
+            printfn "%A" GeoToolkit
 
             msg.tracks
             //|>> fun x -> 

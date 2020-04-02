@@ -43,5 +43,6 @@ https://github.com/ShowingCloud/Alpherg</Description>
 
   <ItemGroup>
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
+    <PackageReference Include="ShowingCloud.GIS.GeoToolkit" Version="1.0.12" />
   </ItemGroup>
 </Project>
