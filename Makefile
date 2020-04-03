@@ -1,4 +1,4 @@
-VERSION=1.0.28
+VERSION=1.0.36
 SOURCE=radarUdpF/Library.fs
 
 
@@ -48,38 +48,32 @@ upgrade:
 
 radarUdpF/bin/Release/netcoreapp3.1/radarUdpF.dll: ${SOURCE}
 	dotnet build -c Release -f netcoreapp3.1
-	dotnet build -c Release -f netstandard2.0
 
 radarUdpF/bin/Debug/netcoreapp3.1/radarUdpF.dll: ${SOURCE}
 	dotnet build -c Debug -f netcoreapp3.1
-	dotnet build -c Debug -f netstandard2.0
 
 radarUdpF/bin/Library/netstandard2.0/radarUdpF.dll: ${SOURCE}
-	dotnet build -c Library -f netcoreapp3.1
 	dotnet build -c Library -f netstandard2.0
 
 
 radarUdpF/bin/Release/netcoreapp3.1/publish/radarUdpF.deps.json: radarUdpF/bin/Release/netcoreapp3.1/radarUdpF.dll
 	dotnet publish -c Release -f netcoreapp3.1
-	dotnet publish -c Release -f netstandard2.0
 
 radarUdpF/bin/Debug/netcoreapp3.1/publish/radarUdpF.deps.json: radarUdpF/bin/Debug/netcoreapp3.1/radarUdpF.dll
 	dotnet publish -c Debug -f netcoreapp3.1
-	dotnet publish -c Debug -f netstandard2.0
 
 radarUdpF/bin/Library/netstandard2.0/publish/radarUdpF.deps.json: radarUdpF/bin/Library/netstandard2.0/radarUdpF.dll
-	dotnet publish -c Library -f netcoreapp3.1
 	dotnet publish -c Library -f netstandard2.0
 
 
 radarUdpF/bin/Release/radarUdpF.${VERSION}.nupkg: radarUdpF/bin/Release/netcoreapp3.1/radarUdpF.dll
-	dotnet pack -c Release --no-build -p:Version=${VERSION}
+	dotnet pack -c Release --no-build -p:Version=${VERSION} -p:TargetFrameworks=netcoreapp3.1
 
 radarUdpF/bin/Debug/radarUdpF.${VERSION}.nupkg: radarUdpF/bin/Debug/netcoreapp3.1/radarUdpF.dll
-	dotnet pack -c Debug --no-build -p:Version=${VERSION}
+	dotnet pack -c Debug --no-build -p:Version=${VERSION} -p:TargetFrameworks=netcoreapp3.1
 
 radarUdpF/bin/Library/radarUdpF.${VERSION}.nupkg: radarUdpF/bin/Library/netstandard2.0/radarUdpF.dll
-	dotnet pack -c Library --no-build -p:Version=${VERSION}
+	dotnet pack -c Library --no-build -p:Version=${VERSION} -p:TargetFrameworks=netstandard2.0
 
 
 .nuget.pushed: radarUdpF/bin/Library/radarUdpF.${VERSION}.nupkg
