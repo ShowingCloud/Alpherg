@@ -1,4 +1,4 @@
-VERSION=1.0.36
+VERSION=1.0.41
 SOURCE=radarUdpF/Library.fs
 
 

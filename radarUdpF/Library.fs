@@ -89,16 +89,16 @@ type Addr =
     | TargetAddr
     | SourceAddr
 
-type radarUdp (port: int) =
+type radarUdpF (port: int) =
     let ip = IPEndPoint(IPAddress.Any, port)
-    static let mutable udp = new UdpClient(15281)
     static let mutable cts = new Threading.CancellationTokenSource()
+    static let mutable udp = new UdpClient(AddressFamily.InterNetwork)
 
-    member __.Receive (callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
+    member __.Receive (callback: radarUdpProtocol -> unit) : unit Threading.Tasks.Task =
         cts.Cancel()
         cts.Dispose()
-        cts <- new Threading.CancellationTokenSource()
 
+        cts <- new Threading.CancellationTokenSource()
         udp.Close()
         udp.Dispose()
         udp <- new UdpClient(port)
@@ -109,16 +109,16 @@ type radarUdp (port: int) =
             |> function
             | msg when length msg = 900
                 -> msg
-                |> Seq.chunkBySize 4
+                |> Array.chunkBySize 4
                 |>> (curry >> flip) BitConverter.ToUInt32 0
                 |> __.Parse
+                |> __.Transform
                 |> __.Return
                 |> callback
             | _ -> printfn "Dropped one misconstrued packet."
             )
             |> fun x -> AsyncCallback x
             |> (curry >> flip) udp.BeginReceive null
-            |> Async.AwaitIAsyncResult
             |> ignore
             return! loopDeconstructed()
         }
@@ -130,7 +130,7 @@ type radarUdp (port: int) =
             |> function
             | msg when length msg = 900
                 -> msg
-                |> Seq.chunkBySize 4
+                |> Array.chunkBySize 4
                 |>> (curry >> flip) BitConverter.ToUInt32 0
                 |> __.Parse
                 |> __.Transform
@@ -140,9 +140,9 @@ type radarUdp (port: int) =
             return! loop()
         }
         loop()
-        |> fun x -> Async.RunSynchronously(x, cancellationToken = cts.Token)
+        |> fun x -> Async.StartAsTask(x, cancellationToken = cts.Token)
 
-    member __.Parse (msg: seq<uint32>) : radarUdpProtocol =
+    member __.Parse (msg: uint32 array) : radarUdpProtocol =
         {
             targetAddr      = msg |> take 3 |> __.toAddr TargetAddr
             sourceAddr      = msg |> take 3 |> __.toAddr SourceAddr
@@ -158,8 +158,8 @@ type radarUdp (port: int) =
                     pitch       = msg |> nth (10 + i * 22) |> __.toFloat32
                     speedRadial = msg |> nth (11 + i * 22) |> __.toFloat32
                     strength    = msg |> nth (12 + i * 22)
-                    longitude   = msg |> nth (13 + i * 22) |> float32 |> flip Operators.(/) 1000000.0f
-                    latitude    = msg |> nth (14 + i * 22) |> float32 |> flip Operators.(/) 1000000.0f
+                    longitude   = msg |> nth (13 + i * 22) |> float32 |> flip (/) 1000000.0f
+                    latitude    = msg |> nth (14 + i * 22) |> float32 |> flip (/) 1000000.0f
                     altitude    = msg |> nth (15 + i * 22) |> __.toFloat32
                     speedEast   = msg |> nth (16 + i * 22) |> __.toFloat32
                     speedNorth  = msg |> nth (17 + i * 22) |> __.toFloat32
@@ -185,13 +185,13 @@ type radarUdp (port: int) =
         |> BitConverter.GetBytes
         |> (curry >> flip) BitConverter.ToSingle 0
 
-    member __.toInt64 (data: seq<uint32>) : uint64 =
+    member __.toInt64 (data: uint32 array) : uint64 =
         data
         |>> BitConverter.GetBytes
         |> Array.concat
         |> (curry >> flip) BitConverter.ToUInt64 0
 
-    member __.toAddr (addr: Addr) (data: seq<uint32>) : array<uint16> =
+    member __.toAddr (addr: Addr) (data: uint32 array) : uint16 array =
         data
         |>> BitConverter.GetBytes
         |> Array.concat
@@ -207,19 +207,26 @@ type radarUdp (port: int) =
             |> Transforms.Wgs84ToUtm
             |> fun x -> track.calculatedLongitude <- Some (float32 x.Y)
             *> fun x -> track.calculatedLatitude <- Some (float32 x.X)
-            *> fun x -> track.calculatedHeight <- Some (float32 track.strength)
+            *> fun _ -> track.calculatedHeight <- Some (float32 track.strength)
         |> ignore
 
         msg
 
-    module radarUdpF =
-        let StartReceive (port: int, callback: radarUdpProtocol -> unit) : Threading.Tasks.Task<unit> =
-            radarUdp(port).Receive callback
+module radarUdp =
 
-        [<EntryPoint>]
-        let main (args: string[]) : int =
-            curry StartReceive 15281 (printfn "%A")
-            |> Async.AwaitTask
-            |> ignore
+    let StartReceive (port: int, callback: radarUdpProtocol -> unit) : unit Threading.Tasks.Task =
+        radarUdpF(port).Receive callback
 
-            0
+    [<EntryPoint>]
+    let main (args: string []) : int =
+        curry StartReceive 15281 (printfn "%A") |> ignore
+
+        printfn "Sleeping"
+        Threading.Thread.Sleep(10 * 1000)
+
+        curry StartReceive 15281 (printfn "%A") |> ignore
+
+        printfn "Another sleep"
+        Threading.Thread.Sleep(60 * 1000)
+
+        0
