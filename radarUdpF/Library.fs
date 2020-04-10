@@ -97,7 +97,6 @@ type radarUdpF (port: int) =
     member __.Receive (callback: radarUdpProtocol -> unit) : unit Threading.Tasks.Task =
         cts.Cancel()
         cts.Dispose()
-
         cts <- new Threading.CancellationTokenSource()
         udp.Close()
         udp.Dispose()
@@ -213,18 +212,17 @@ type radarUdpF (port: int) =
         msg
 
 module radarUdp =
-
-    let StartReceive (port: int, callback: radarUdpProtocol -> unit) : unit Threading.Tasks.Task =
+    let StartReceive (port: int) (callback: radarUdpProtocol -> unit) : unit Threading.Tasks.Task =
         radarUdpF(port).Receive callback
 
     [<EntryPoint>]
     let main (args: string []) : int =
-        curry StartReceive 15281 (printfn "%A") |> ignore
+        StartReceive 15281 (printfn "%A") |> ignore
 
         printfn "Sleeping"
         Threading.Thread.Sleep(10 * 1000)
 
-        curry StartReceive 15281 (printfn "%A") |> ignore
+        StartReceive 15281 (printfn "%A") |> ignore
 
         printfn "Another sleep"
         Threading.Thread.Sleep(60 * 1000)
