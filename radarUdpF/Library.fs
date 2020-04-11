@@ -86,8 +86,8 @@ type radarUdpProtocol =
     }
 
 type Addr =
-    | TargetAddr
-    | SourceAddr
+| TargetAddr
+| SourceAddr
 
 type radarUdpF (port: int) =
     let ip = IPEndPoint(IPAddress.Any, port)
@@ -103,19 +103,18 @@ type radarUdpF (port: int) =
         udp <- new UdpClient(port)
 
         let rec loopDeconstructed () = async {
-            (fun x ->
-            curry udp.EndReceive x (ref ip)
-            |> function
-            | msg when length msg = 900
-                -> msg
-                |> Array.chunkBySize 4
-                |>> (curry >> flip) BitConverter.ToUInt32 0
-                |> __.Parse
-                |> __.Transform
-                |> __.Return
-                |> callback
-            | _ -> printfn "Dropped one misconstrued packet."
-            )
+            fun x ->
+                curry udp.EndReceive x (ref ip)
+                |> function
+                | msg when length msg = 900
+                    -> msg
+                    |> Array.chunkBySize 4
+                    |>> (curry >> flip) BitConverter.ToUInt32 0
+                    |> __.Parse
+                    |> __.Transform
+                    |> __.Return
+                    |> callback
+                | _ -> printfn "Dropped one misconstrued packet."
             |> fun x -> AsyncCallback x
             |> (curry >> flip) udp.BeginReceive null
             |> ignore
@@ -149,7 +148,7 @@ type radarUdpF (port: int) =
             trackNum        = msg |> nth 4
             tracks          = [|0..9|]
                 |> ((fun i -> msg |> nth (5 + i * 22) <> uint32 0) |> filter)
-                |>> (fun i -> {
+                |>> fun i -> {
                     trackId     = msg |> nth (5 + i * 22)
                     timestamp   = msg |> skip (5 + i * 22) |> take 2 |> __.toInt64
                     distance    = msg |> nth (8 + i * 22) |> __.toFloat32
@@ -173,7 +172,7 @@ type radarUdpF (port: int) =
                     calculatedLongitude = None
                     calculatedLatitude  = None
                     calculatedHeight    = None
-                })
+                }
         }
 
     member __.Return (msg: radarUdpProtocol) : radarUdpProtocol =

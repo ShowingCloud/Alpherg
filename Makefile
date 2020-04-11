@@ -1,4 +1,4 @@
-VERSION=1.0.41
+VERSION=1.0.42
 SOURCE=radarUdpF/Library.fs
 
 
@@ -57,13 +57,13 @@ radarUdpF/bin/Library/netstandard2.0/radarUdpF.dll: ${SOURCE}
 
 
 radarUdpF/bin/Release/netcoreapp3.1/publish/radarUdpF.deps.json: radarUdpF/bin/Release/netcoreapp3.1/radarUdpF.dll
-	dotnet publish -c Release -f netcoreapp3.1
+	dotnet publish -c Release -f netcoreapp3.1 --no-build
 
 radarUdpF/bin/Debug/netcoreapp3.1/publish/radarUdpF.deps.json: radarUdpF/bin/Debug/netcoreapp3.1/radarUdpF.dll
-	dotnet publish -c Debug -f netcoreapp3.1
+	dotnet publish -c Debug -f netcoreapp3.1 --no-build
 
 radarUdpF/bin/Library/netstandard2.0/publish/radarUdpF.deps.json: radarUdpF/bin/Library/netstandard2.0/radarUdpF.dll
-	dotnet publish -c Library -f netstandard2.0
+	dotnet publish -c Library -f netstandard2.0 --no-build
 
 
 radarUdpF/bin/Release/radarUdpF.${VERSION}.nupkg: radarUdpF/bin/Release/netcoreapp3.1/radarUdpF.dll
