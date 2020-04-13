@@ -122,8 +122,9 @@ type radarUdpF (port: int) =
         }
 
         let rec loop () = async {
-            (curry >> flip) udp.EndReceive (ref ip)
-            |> fun x -> Async.FromBeginEnd(udp.BeginReceive, x)
+            udp.BeginReceive
+            </ fun x y -> Async.FromBeginEnd(x, y)
+            /> (curry >> flip) udp.EndReceive (ref ip)
             |> fun x -> Async.RunSynchronously(x, cancellationToken = cts.Token)
             |> function
             | msg when length msg = 900
